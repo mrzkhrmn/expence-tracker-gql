@@ -49,7 +49,7 @@ const userResolver = {
         throw new Error(error.message || "Internal Server Error");
       }
     },
-    logout: async (_, _, context) => {
+    logout: async (_, __, context) => {
       try {
         await context.logout();
         req.session.destroy((err) => {
@@ -65,9 +65,10 @@ const userResolver = {
     },
   },
   Query: {
-    authUser: async (_, _, context) => {
+    authUser: async (_, __, context) => {
       try {
         const user = await context.getUser();
+        return user;
       } catch (error) {
         console.error(`Error in authUser: ${error}`);
         throw new Error(error.message || "Internal Server Error");
@@ -83,7 +84,6 @@ const userResolver = {
       }
     },
   },
-  Mutation: {},
 };
 
 export default userResolver;
