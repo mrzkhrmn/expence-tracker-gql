@@ -25,6 +25,8 @@ const userResolver = {
           name,
           password: hashedPassword,
           gender,
+          profilePicture:
+            gender === "male" ? maleGenderProfilePic : femaleGenderProfilePic,
         });
 
         await newUser.save();

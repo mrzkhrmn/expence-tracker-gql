@@ -21,8 +21,10 @@ export const TransactionPage = () => {
     date: data?.transaction.date || "",
   });
 
-  const [updateTransaction, { loading: updateLoading }] =
-    useMutation(UPDATE_TRANSACTION);
+  const [updateTransaction, { loading: updateLoading }] = useMutation(
+    UPDATE_TRANSACTION,
+    { refetchQueries: ["GetTransactions", "GetTransactionStatistics"] }
+  );
 
   async function handleSubmit(e) {
     e.preventDefault();
