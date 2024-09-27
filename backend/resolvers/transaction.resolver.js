@@ -1,4 +1,5 @@
 import Transaction from "../models/transaction.model.js";
+import User from "../models/user.model.js";
 
 const transactionResolver = {
   Query: {
@@ -82,6 +83,18 @@ const transactionResolver = {
       } catch (error) {
         console.error(`Error in deleteTransaction: ${error}`);
         throw new Error(error.message || "Internal Server Error");
+      }
+    },
+  },
+  Transaction: {
+    user: async (parent) => {
+      const userId = parent.userId;
+      try {
+        const user = await User.findById(userId);
+        return user;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error.message || "Internal server error");
       }
     },
   },
