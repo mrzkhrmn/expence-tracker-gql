@@ -1,22 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_TRANSACTION } from "../graphql/queries/transaction.query";
+import { useParams } from "react-router-dom";
+import { UPDATE_TRANSACTION } from "../graphql/mutations/transaction.mutation";
+import toast from "react-hot-toast";
 
 export const TransactionPage = () => {
-  const [formData, setFormData] = useState({
-    description: "",
-    paymentType: "",
-    category: "",
-    amount: "",
-    location: "",
-    date: "",
+  const { id } = useParams();
+
+  const { data, loading, error } = useQuery(GET_TRANSACTION, {
+    variables: { transactionId: id },
   });
+  const [formData, setFormData] = useState({
+    description: data?.transaction.description || "",
+    paymentType: data?.transaction.paymentType || "",
+    category: data?.transaction.category || "",
+    amount: data?.transaction.amount || "",
+    location: data?.transaction.location || "",
+    date: data?.transaction.date || "",
+  });
+
+  const [updateTransaction, { loading: updateLoading }] =
+    useMutation(UPDATE_TRANSACTION);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const amount = parseFloat(formData.amount);
     try {
-      console.log(formData);
+      await updateTransaction({
+        variables: { input: { ...formData, transactionId: id, amount } },
+      });
+      toast.success("Transaction updated!");
     } catch (error) {
       console.log(error);
+      toast.error(error.message);
     }
   }
 
@@ -24,7 +42,19 @@ export const TransactionPage = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   }
 
-  console.log(formData);
+  useEffect(() => {
+    if (data) {
+      setFormData({
+        description: data?.transaction.description,
+        paymentType: data?.transaction.paymentType,
+        category: data?.transaction.category,
+        amount: data?.transaction.amount,
+        location: data?.transaction.location,
+        date: new Date(+data?.transaction.date).toISOString().substring(0, 10),
+      });
+    }
+  }, [data]);
+
   return (
     <motion.div
       initial={{ y: 500, opacity: 0 }}
@@ -49,7 +79,7 @@ export const TransactionPage = () => {
             name="description"
             className="bg-gray-600 py-3 px-2 outline-none rounded-md"
             onChange={handleChange}
-            defaultValue={formData.description}
+            value={formData.description}
           />
         </div>
         <div className="flex items-center gap-4">
@@ -65,7 +95,7 @@ export const TransactionPage = () => {
               id="paymentType"
               className="bg-gray-600 py-3 px-2 outline-none rounded-md"
               onChange={handleChange}
-              defaultValue={formData.paymentType}
+              value={formData.paymentType}
             >
               <option value="cash">Cash</option>
               <option value="card">Card</option>
@@ -83,7 +113,7 @@ export const TransactionPage = () => {
               id="category"
               className="bg-gray-600 py-3 px-2 outline-none rounded-md"
               onChange={handleChange}
-              defaultValue={formData.category}
+              value={formData.category}
             >
               <option value="saving">Saving</option>
               <option value="expense">Expense</option>
@@ -104,7 +134,7 @@ export const TransactionPage = () => {
               min={0}
               className="bg-gray-600 py-3 px-2 outline-none rounded-md"
               onChange={handleChange}
-              defaultValue={formData.amount}
+              value={formData.amount}
             />
           </div>
         </div>
@@ -122,7 +152,7 @@ export const TransactionPage = () => {
               name="location"
               className="bg-gray-600 py-3 px-2 outline-none rounded-md"
               onChange={handleChange}
-              defaultValue={formData.location}
+              value={formData.location}
             />
           </div>
           <div className="flex flex-col gap-1 my-4 w-full">
@@ -135,15 +165,16 @@ export const TransactionPage = () => {
               name="date"
               className="bg-gray-600 py-3 px-2 outline-none rounded-md"
               onChange={handleChange}
-              defaultValue={formData.date}
+              value={formData.date}
             />
           </div>
         </div>
         <button
           type="submit"
           className="w-full text-center bg-gray-100 text-black py-2 rounded-md text-lg mt-2"
+          disabled={updateLoading}
         >
-          Update Transaction
+          {updateLoading ? "Updating..." : "Update Transaction"}
         </button>
       </form>
     </motion.div>
